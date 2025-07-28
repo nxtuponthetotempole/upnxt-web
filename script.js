@@ -49,7 +49,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const forms = document.querySelectorAll('.waitlist-form');
     forms.forEach(form => {
         form.addEventListener('submit', handleFormSubmit);
-        
+    
         // Add real-time validation for phone and checkbox
         const phoneInput = form.querySelector('input[type="tel"]');
         const checkbox = form.querySelector('input[type="checkbox"]');
@@ -73,8 +73,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // Scroll title animation
     const scrollTitle = document.querySelector('.scroll-title');
     if (scrollTitle) {
-        window.addEventListener('scroll', () => {
-            const scrolled = window.pageYOffset;
+    window.addEventListener('scroll', () => {
+        const scrolled = window.pageYOffset;
             const heroHeight = window.innerHeight;
             const scrollProgress = Math.min(scrolled / heroHeight, 1);
             
@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Fade in as user scrolls
             const opacity = Math.min(1, scrollProgress * 2);
             scrollTitle.style.opacity = opacity;
-        });
+    });
     }
     
     // Floating elements animation enhancement
@@ -164,23 +164,23 @@ async function handleFormSubmit(e) {
             throw error;
         }
         
-        // Success state
-        button.textContent = 'Welcome! 🎬';
-        button.style.background = '#26A67E';
-        
+            // Success state
+            button.textContent = 'Welcome! 🎬';
+            button.style.background = '#26A67E';
+            
         showToast('🎬 You\'re on the list! We\'ll text you soon.', 'success');
-        
-        // Reset form
+            
+            // Reset form
         phoneInput.value = '';
         checkbox.checked = false;
         button.disabled = true;
-        
-        // Reset button after delay
-        setTimeout(() => {
-            button.textContent = originalText;
-            button.disabled = false;
-            button.style.background = '#2CCB99';
-        }, 3000);
+            
+            // Reset button after delay
+            setTimeout(() => {
+                button.textContent = originalText;
+                button.disabled = false;
+                button.style.background = '#2CCB99';
+            }, 3000);
         
     } catch (error) {
         console.error('Form submission error:', error);
