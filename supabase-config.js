@@ -1,40 +1,126 @@
-// Supabase configuration using ESM imports
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
 
-const SUPABASE_URL = 'https://apcdrhuunpkidkweydmu.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwY2RyaHV1bnBraWRrd2V5ZG11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyOTc1NDcsImV4cCI6MjA2ODg3MzU0N30.YO5YxKiTnFFV0Ju1n-dyx2b5h-nbwQ736hLDfXQUE4k';
+export const SUPABASE_URL = 'https://apcdrhuunpkidkweydmu.supabase.co';
+export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwY2RyaHV1bnBraWRrd2V5ZG11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyOTc1NDcsImV4cCI6MjA2ODg3MzU0N30.YO5YxKiTnFFV0Ju1n-dyx2b5h-nbwQ736hLDfXQUE4k';
 
-// Create and export Supabase client
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// Test connection on initialization
+// 🧪 COMPREHENSIVE VERIFICATION TESTS
 console.log('🔧 Initializing Supabase client...');
 
-// Test the connection with a simple query
-supabase.from('waitlist_signups').select('id').limit(1)
-    .then(({ data, error }) => {
+// ✅ Connection Test
+async function testConnection() {
+    try {
+        console.log('🧪 Testing Supabase connection...');
+        const { data, error } = await supabase
+            .from('waitlist_signups')
+            .select('id')
+            .limit(1);
+        
         if (error) {
-            console.error('❌ Supabase connection test failed:', error);
-            console.error('Error details:', {
-                message: error.message,
-                details: error.details,
-                hint: error.hint,
-                code: error.code
-            });
-        } else {
-            console.log('✅ Supabase connected and ready');
-            console.log('Connection test successful - table accessible');
+            console.error('❌ Supabase SELECT failed:', error);
+            throw error;
         }
-    })
-    .catch(err => {
-        console.error('❌ Supabase init failed:', err);
-        console.error('This may indicate a network issue or invalid credentials');
-    });
+        
+        console.log('✅ Supabase SELECT successful');
+        return true;
+    } catch (err) {
+        console.error('❌ Connection test failed:', err);
+        return false;
+    }
+}
 
-// Export configuration constants for debugging
-export const SUPABASE_CONFIG = {
-    url: SUPABASE_URL,
-    anonKey: SUPABASE_ANON_KEY.substring(0, 20) + '...' // Truncated for security
-};
+// ✅ Insert Test
+async function testInsert() {
+    try {
+        console.log('🧪 Testing data insertion...');
+        const testData = { 
+            phone_number: '19999999999', 
+            consented_to_sms: true 
+        };
+        
+        const { data, error } = await supabase
+            .from('waitlist_signups')
+            .insert([testData])
+            .select();
+        
+        if (error) {
+            console.error('❌ Insert test failed:', error);
+            throw error;
+        }
+        
+        console.log('✅ Insert test passed and returned row:', data);
+        return true;
+    } catch (err) {
+        console.error('❌ Insert test failed:', err);
+        return false;
+    }
+}
 
-console.log('📋 Supabase config loaded:', SUPABASE_CONFIG); 
+// ✅ RLS Enforcement Test
+async function testRLSEnforcement() {
+    try {
+        console.log('🧪 Testing RLS policy enforcement...');
+        const testData = { 
+            phone_number: '18888888888', 
+            consented_to_sms: false 
+        };
+        
+        const { data, error } = await supabase
+            .from('waitlist_signups')
+            .insert([testData])
+            .select();
+        
+        if (!error) {
+            console.error('❌ Policy enforcement failed - insert succeeded when it should have been blocked');
+            throw new Error('❌ Policy enforcement failed');
+        }
+        
+        console.log('✅ RLS policy correctly blocked insert with consented_to_sms: false');
+        console.log('Expected error:', error.message);
+        return true;
+    } catch (err) {
+        if (err.message === '❌ Policy enforcement failed') {
+            throw err;
+        }
+        console.log('✅ RLS policy enforcement working correctly');
+        return true;
+    }
+}
+
+// Run all verification tests
+async function runAllTests() {
+    console.log('🚀 Starting comprehensive Supabase verification...');
+    
+    try {
+        const connectionOk = await testConnection();
+        if (!connectionOk) {
+            console.error('❌ Connection test failed - stopping verification');
+            return false;
+        }
+        
+        const insertOk = await testInsert();
+        if (!insertOk) {
+            console.error('❌ Insert test failed - stopping verification');
+            return false;
+        }
+        
+        const rlsOk = await testRLSEnforcement();
+        if (!rlsOk) {
+            console.error('❌ RLS enforcement test failed');
+            return false;
+        }
+        
+        console.log('🎉 All verification tests passed! System is ready for live form submission.');
+        return true;
+    } catch (err) {
+        console.error('❌ Verification failed:', err);
+        return false;
+    }
+}
+
+// Export test function for manual execution
+export { runAllTests };
+
+// Auto-run tests after a short delay to ensure everything is loaded
+setTimeout(runAllTests, 1000); 

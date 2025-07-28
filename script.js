@@ -1,5 +1,5 @@
 // Import supabase client from supabase-config.js
-import { supabase, SUPABASE_CONFIG } from './supabase-config.js';
+import { supabase } from './supabase-config.js';
 
 // Smooth scrolling and animations
 document.addEventListener('DOMContentLoaded', function() {
@@ -119,6 +119,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
+    
+    // Manual test trigger - can be called from browser console
+    window.testSupabase = runAllTests;
     
     // Test Supabase connection on page load
     async function testSupabaseConnection() {
@@ -243,7 +246,6 @@ async function handleFormSubmit(e) {
             consented_to_sms: consented 
         };
         console.log('📝 Attempting to insert data:', insertData);
-        console.log('🔧 Supabase config:', SUPABASE_CONFIG);
         
         // Check if Supabase client is properly initialized
         if (!supabase || !supabase.from) {
@@ -272,9 +274,7 @@ async function handleFormSubmit(e) {
             // Log additional debugging info
             console.error('🔍 Debug info:', {
                 table: 'waitlist_signups',
-                data: insertData,
-                supabaseUrl: SUPABASE_CONFIG.url,
-                hasAnonKey: !!SUPABASE_CONFIG.anonKey
+                data: insertData
             });
             
             throw error;
