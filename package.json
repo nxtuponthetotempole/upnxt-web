@@ -5,7 +5,7 @@
   "main": "index.html",
   "scripts": {
     "dev": "npx serve .",
-    "build": "echo 'Static site - no build required'",
+    "build": "echo 'Static site — no build needed'",
     "start": "npx serve ."
   },
   "dependencies": {
