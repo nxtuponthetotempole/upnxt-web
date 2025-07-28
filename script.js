@@ -70,6 +70,18 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
     
+    // Additional direct event listener for debugging
+    const finalForm = document.getElementById('finalForm');
+    if (finalForm) {
+        console.log('Final form found and event listener attached');
+        finalForm.addEventListener('submit', (e) => {
+            console.log('Form submit event triggered');
+            handleFormSubmit(e);
+        });
+    } else {
+        console.warn('Final form not found');
+    }
+    
     // Scroll title animation
     const scrollTitle = document.querySelector('.scroll-title');
     if (scrollTitle) {
@@ -123,6 +135,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
+// Fix Supabase waitlist submission bug
+
 // Form submission handler
 async function handleFormSubmit(e) {
     e.preventDefault();
@@ -133,58 +147,94 @@ async function handleFormSubmit(e) {
     const button = form.querySelector('.cta-button');
     const originalText = button.textContent;
     
-    if (!phoneInput.value.trim()) {
-        showToast('Please enter your phone number', 'error');
-        return;
-    }
-    
-    if (!checkbox.checked) {
-        showToast('Please agree to receive SMS updates', 'error');
+    const phoneNumber = phoneInput.value.trim();
+    const consented = checkbox.checked;
+
+    // Validation
+    if (!phoneNumber || !consented) {
+        showToast('Please enter your phone number and agree to SMS updates.', 'error');
         return;
     }
     
     // Validate phone number (basic validation)
     const phoneRegex = /^[\+]?[1-9][\d]{0,15}$/;
-    if (!phoneRegex.test(phoneInput.value.trim().replace(/\s/g, ''))) {
+    if (!phoneRegex.test(phoneNumber.replace(/\s/g, ''))) {
         showToast('Please enter a valid phone number', 'error');
         return;
     }
     
-    // Show loading state
+    // Show loading state and disable button to prevent double clicks
     button.textContent = 'Joining...';
     button.disabled = true;
     
     try {
-        // Submit to Supabase
-        const { error } = await supabase
+        // Debug: Log the data being sent
+        const insertData = { 
+            phone_number: phoneNumber, 
+            consented_to_sms: consented 
+        };
+        console.log('Attempting to insert data:', insertData);
+        
+        // Check if Supabase client is properly initialized
+        if (!supabase || !supabase.from) {
+            throw new Error('Supabase client not properly initialized');
+        }
+        
+        // Insert into Supabase with RLS-compliant data structure
+        const { data, error } = await supabase
             .from('waitlist_signups')
-            .insert([{ phone: phoneInput.value.trim() }]);
+            .insert([insertData])
+            .select();
         
         if (error) {
+            console.error('Supabase insert error:', error);
+            console.error('Error details:', {
+                message: error.message,
+                details: error.details,
+                hint: error.hint,
+                code: error.code
+            });
             throw error;
         }
         
-            // Success state
-            button.textContent = 'Welcome! 🎬';
-            button.style.background = '#26A67E';
-            
-        showToast('🎬 You\'re on the list! We\'ll text you soon.', 'success');
-            
-            // Reset form
+        console.log('Successfully inserted data:', data);
+        
+        // Success state
+        button.textContent = 'Welcome! 🎬';
+        button.style.background = '#26A67E';
+        
+        showToast('🎉 You\'re on the waitlist!', 'success');
+        
+        // Reset form
         phoneInput.value = '';
         checkbox.checked = false;
         button.disabled = true;
-            
-            // Reset button after delay
-            setTimeout(() => {
-                button.textContent = originalText;
-                button.disabled = false;
-                button.style.background = '#2CCB99';
-            }, 3000);
+        
+        // Reset button after delay
+        setTimeout(() => {
+            button.textContent = originalText;
+            button.disabled = false;
+            button.style.background = '#2CCB99';
+        }, 3000);
         
     } catch (error) {
         console.error('Form submission error:', error);
-        showToast('⚠️ Something went wrong. Try again.', 'error');
+        console.error('Full error object:', JSON.stringify(error, null, 2));
+        
+        // Show specific error message based on error type
+        let errorMessage = '⚠️ Something went wrong. Please try again.';
+        
+        if (error.message) {
+            if (error.message.includes('RLS')) {
+                errorMessage = '⚠️ Permission denied. Please check your consent.';
+            } else if (error.message.includes('network')) {
+                errorMessage = '⚠️ Network error. Please check your connection.';
+            } else if (error.message.includes('phone_number')) {
+                errorMessage = '⚠️ Invalid phone number format.';
+            }
+        }
+        
+        showToast(errorMessage, 'error');
         
         // Reset button
         button.textContent = originalText;

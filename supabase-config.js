@@ -13,8 +13,19 @@ if (typeof window !== 'undefined') {
     script.onload = function() {
         try {
             supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            console.log('Supabase client initialized successfully');
+            
+            // Test the connection
+            supabase.from('waitlist_signups').select('count', { count: 'exact', head: true })
+                .then(({ error }) => {
+                    if (error) {
+                        console.warn('Supabase connection test failed:', error);
+                    } else {
+                        console.log('Supabase connection test successful');
+                    }
+                });
         } catch (error) {
-            console.warn('Failed to initialize Supabase:', error);
+            console.error('Failed to initialize Supabase:', error);
             // Fallback for development
             supabase = { 
                 from: () => ({ 
@@ -24,7 +35,7 @@ if (typeof window !== 'undefined') {
         }
     };
     script.onerror = function() {
-        console.warn('Supabase CDN failed to load, using fallback');
+        console.error('Supabase CDN failed to load, using fallback');
         supabase = { 
             from: () => ({ 
                 insert: () => Promise.resolve({ error: null }) 
