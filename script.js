@@ -1,5 +1,5 @@
 // Import supabase client from supabase-config.js
-import { supabase } from './supabase-config.js';
+import { supabase, SUPABASE_CONFIG } from './supabase-config.js';
 
 // Smooth scrolling and animations
 document.addEventListener('DOMContentLoaded', function() {
@@ -120,6 +120,37 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
+    // Test Supabase connection on page load
+    async function testSupabaseConnection() {
+        try {
+            console.log('🧪 Testing Supabase connection...');
+            
+            if (!supabase || !supabase.from) {
+                console.error('❌ Supabase client not available');
+                return false;
+            }
+            
+            const { data, error } = await supabase
+                .from('waitlist_signups')
+                .select('id')
+                .limit(1);
+            
+            if (error) {
+                console.error('❌ Supabase connection test failed:', error);
+                return false;
+            }
+            
+            console.log('✅ Supabase connection test successful');
+            return true;
+        } catch (err) {
+            console.error('❌ Supabase connection test error:', err);
+            return false;
+        }
+    }
+    
+    // Run connection test after a short delay to ensure everything is loaded
+    setTimeout(testSupabaseConnection, 1000);
+    
     // Scroll title animation
     const scrollTitle = document.querySelector('.scroll-title');
     if (scrollTitle) {
@@ -211,12 +242,17 @@ async function handleFormSubmit(e) {
             phone_number: phoneNumber, 
             consented_to_sms: consented 
         };
-        console.log('Attempting to insert data:', insertData);
+        console.log('📝 Attempting to insert data:', insertData);
+        console.log('🔧 Supabase config:', SUPABASE_CONFIG);
         
         // Check if Supabase client is properly initialized
         if (!supabase || !supabase.from) {
+            console.error('❌ Supabase client not properly initialized');
+            console.error('Supabase object:', supabase);
             throw new Error('Supabase client not properly initialized');
         }
+        
+        console.log('✅ Supabase client ready, attempting insert...');
         
         // Insert into Supabase with RLS-compliant data structure
         const { data, error } = await supabase
@@ -225,17 +261,26 @@ async function handleFormSubmit(e) {
             .select();
         
         if (error) {
-            console.error('Supabase insert error:', error);
+            console.error('❌ Supabase insert error:', error);
             console.error('Error details:', {
                 message: error.message,
                 details: error.details,
                 hint: error.hint,
                 code: error.code
             });
+            
+            // Log additional debugging info
+            console.error('🔍 Debug info:', {
+                table: 'waitlist_signups',
+                data: insertData,
+                supabaseUrl: SUPABASE_CONFIG.url,
+                hasAnonKey: !!SUPABASE_CONFIG.anonKey
+            });
+            
             throw error;
         }
         
-        console.log('Successfully inserted data:', data);
+        console.log('✅ Successfully inserted data:', data);
         
         // Success state
         button.textContent = 'Welcome! 🎬';
