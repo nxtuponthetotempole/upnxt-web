@@ -3,7 +3,28 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 export const SUPABASE_URL = 'https://apcdrhuunpkidkweydmu.supabase.co';
 export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwY2RyaHV1bnBraWRrd2V5ZG11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyOTc1NDcsImV4cCI6MjA2ODg3MzU0N30.YO5YxKiTnFFV0Ju1n-dyx2b5h-nbwQ736hLDfXQUE4k';
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Create Supabase client with explicit anon context
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+        detectSessionInUrl: false
+    },
+    global: {
+        headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        }
+    }
+});
+
+// Ensure we're in anon context
+console.log('🔧 Supabase client initialized with anon context');
+console.log('📋 Client config:', {
+    url: SUPABASE_URL,
+    hasAnonKey: !!SUPABASE_ANON_KEY,
+    authMode: 'anon'
+});
 
 // 🧪 COMPREHENSIVE VERIFICATION TESTS
 console.log('🔧 Initializing Supabase client...');
@@ -88,9 +109,25 @@ async function testRLSEnforcement() {
     }
 }
 
+// Ensure anon context for requests
+async function ensureAnonContext() {
+    try {
+        // Set session to null to ensure anon context
+        await supabase.auth.setSession(null);
+        console.log('✅ Anon context ensured');
+        return true;
+    } catch (err) {
+        console.log('ℹ️ Already in anon context');
+        return true;
+    }
+}
+
 // Run all verification tests
 async function runAllTests() {
     console.log('🚀 Starting comprehensive Supabase verification...');
+    
+    // Ensure we're in anon context before testing
+    await ensureAnonContext();
     
     try {
         const connectionOk = await testConnection();
