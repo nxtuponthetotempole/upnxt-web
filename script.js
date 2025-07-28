@@ -82,6 +82,44 @@ document.addEventListener('DOMContentLoaded', function() {
         console.warn('Final form not found');
     }
     
+    // Video mute toggle functionality
+    const bgVideo = document.getElementById('bgVideo');
+    const muteToggle = document.getElementById('muteToggle');
+    
+    if (bgVideo && muteToggle) {
+        // Initialize mute state
+        updateMuteButton(bgVideo.muted);
+        
+        // Toggle mute on button click
+        muteToggle.addEventListener('click', () => {
+            bgVideo.muted = !bgVideo.muted;
+            updateMuteButton(bgVideo.muted);
+            
+            // Add visual feedback
+            muteToggle.style.transform = 'scale(0.9)';
+            setTimeout(() => {
+                muteToggle.style.transform = '';
+            }, 150);
+        });
+        
+        // Update button when video mute state changes (e.g., from native controls)
+        bgVideo.addEventListener('volumechange', () => {
+            updateMuteButton(bgVideo.muted);
+        });
+    }
+    
+    function updateMuteButton(isMuted) {
+        if (muteToggle) {
+            if (isMuted) {
+                muteToggle.classList.remove('unmuted');
+                muteToggle.setAttribute('aria-label', 'Unmute video');
+            } else {
+                muteToggle.classList.add('unmuted');
+                muteToggle.setAttribute('aria-label', 'Mute video');
+            }
+        }
+    }
+    
     // Scroll title animation
     const scrollTitle = document.querySelector('.scroll-title');
     if (scrollTitle) {

@@ -47,6 +47,82 @@ body {
     z-index: -1;
 }
 
+/* Video controls styling */
+#bgVideo::-webkit-media-controls {
+    z-index: 10;
+}
+
+#bgVideo::-webkit-media-controls-panel {
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
+    margin: 20px;
+}
+
+#bgVideo::-webkit-media-controls-play-button {
+    background: rgba(44, 203, 153, 0.8);
+    border-radius: 50%;
+}
+
+#bgVideo::-webkit-media-controls-volume-slider {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 10px;
+}
+
+/* Custom mute toggle button */
+.mute-toggle {
+    position: absolute;
+    bottom: 2rem;
+    right: 2rem;
+    width: 48px;
+    height: 48px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.mute-toggle:hover {
+    background: rgba(0, 0, 0, 0.8);
+    border-color: rgba(44, 203, 153, 0.8);
+    transform: scale(1.1);
+}
+
+.mute-toggle:active {
+    transform: scale(0.95);
+}
+
+.mute-icon {
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.mute-toggle:hover .mute-icon {
+    color: #2CCB99;
+}
+
+/* Icon states */
+.muted-icon {
+    display: block;
+}
+
+.unmuted-icon {
+    display: none;
+}
+
+.mute-toggle.unmuted .muted-icon {
+    display: none;
+}
+
+.mute-toggle.unmuted .unmuted-icon {
+    display: block;
+}
+
 .video-overlay {
     position: absolute;
     top: 0;
@@ -571,6 +647,19 @@ body {
     
     .demo-placeholder {
         margin: 0 1rem;
+    }
+    
+    /* Mobile mute toggle adjustments */
+    .mute-toggle {
+        bottom: 1rem;
+        right: 1rem;
+        width: 40px;
+        height: 40px;
+    }
+    
+    .mute-icon {
+        width: 20px;
+        height: 20px;
     }
     
     .play-button-circle svg {
