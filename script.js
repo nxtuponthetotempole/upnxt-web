@@ -1,8 +1,8 @@
 // Import supabase client and test functions from supabase-config.js
-import { supabase, runAllTests } from './supabase-config.js';
+import { supabase, runAllTestsDirect } from './supabase-config.js';
 
 // Make test functions available globally for browser console access
-window.testSupabase = runAllTests;
+window.testSupabase = runAllTestsDirect;
 window.supabase = supabase;
 
 // Individual test functions for debugging
@@ -332,39 +332,43 @@ async function handleFormSubmit(e) {
         };
         console.log('📝 Attempting to insert data:', insertData);
         
-        // Check if Supabase client is properly initialized
-        if (!supabase || !supabase.from) {
-            console.error('❌ Supabase client not properly initialized');
-            console.error('Supabase object:', supabase);
-            throw new Error('Supabase client not properly initialized');
-        }
+        // Use direct fetch approach for better reliability
+        const SUPABASE_URL = 'https://apcdrhuunpkidkweydmu.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFwY2RyaHV1bnBraWRrd2V5ZG11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyOTc1NDcsImV4cCI6MjA2ODg3MzU0N30.YO5YxKiTnFFV0Ju1n-dyx2b5h-nbwQ736hLDfXQUE4k';
         
-        console.log('✅ Supabase client ready, attempting insert...');
+        console.log('✅ Using direct fetch approach...');
         
-        // Insert into Supabase with RLS-compliant data structure
-        const { data, error } = await supabase
-            .from('waitlist_signups')
-            .insert([insertData])
-            .select();
+        // Insert into Supabase using direct fetch
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/waitlist_signups`, {
+            method: 'POST',
+            headers: {
+                'apikey': SUPABASE_ANON_KEY,
+                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=representation'
+            },
+            body: JSON.stringify(insertData)
+        });
         
-        if (error) {
-            console.error('❌ Supabase insert error:', error);
-            console.error('Error details:', {
-                message: error.message,
-                details: error.details,
-                hint: error.hint,
-                code: error.code
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('❌ Direct fetch insert error:', {
+                status: response.status,
+                statusText: response.statusText,
+                errorText: errorText
             });
             
             // Log additional debugging info
             console.error('🔍 Debug info:', {
                 table: 'waitlist_signups',
-                data: insertData
+                data: insertData,
+                url: `${SUPABASE_URL}/rest/v1/waitlist_signups`
             });
             
-            throw error;
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
         }
         
+        const data = await response.json();
         console.log('✅ Successfully inserted data:', data);
         
         // Success state
