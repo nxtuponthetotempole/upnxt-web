@@ -124,3 +124,5 @@ export { runAllTests };
 
 // Auto-run tests after a short delay to ensure everything is loaded
 setTimeout(runAllTests, 1000); 
+
+window.testSupabase = runAllTests;

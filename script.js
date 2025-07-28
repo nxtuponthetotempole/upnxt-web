@@ -1,5 +1,93 @@
-// Import supabase client from supabase-config.js
-import { supabase } from './supabase-config.js';
+// Import supabase client and test functions from supabase-config.js
+import { supabase, runAllTests } from './supabase-config.js';
+
+// Make test functions available globally for browser console access
+window.testSupabase = runAllTests;
+window.supabase = supabase;
+
+// Individual test functions for debugging
+window.testConnection = async function() {
+    try {
+        console.log('🧪 Testing Supabase connection...');
+        const { data, error } = await supabase
+            .from('waitlist_signups')
+            .select('id')
+            .limit(1);
+        
+        if (error) {
+            console.error('❌ Supabase SELECT failed:', error);
+            throw error;
+        }
+        
+        console.log('✅ Supabase SELECT successful');
+        return true;
+    } catch (err) {
+        console.error('❌ Connection test failed:', err);
+        return false;
+    }
+};
+
+window.testInsert = async function() {
+    try {
+        console.log('🧪 Testing data insertion...');
+        const testData = { 
+            phone_number: '19999999999', 
+            consented_to_sms: true 
+        };
+        
+        const { data, error } = await supabase
+            .from('waitlist_signups')
+            .insert([testData])
+            .select();
+        
+        if (error) {
+            console.error('❌ Insert test failed:', error);
+            throw error;
+        }
+        
+        console.log('✅ Insert test passed and returned row:', data);
+        return true;
+    } catch (err) {
+        console.error('❌ Insert test failed:', err);
+        return false;
+    }
+};
+
+window.testRLS = async function() {
+    try {
+        console.log('🧪 Testing RLS policy enforcement...');
+        const testData = { 
+            phone_number: '18888888888', 
+            consented_to_sms: false 
+        };
+        
+        const { data, error } = await supabase
+            .from('waitlist_signups')
+            .insert([testData])
+            .select();
+        
+        if (!error) {
+            console.error('❌ Policy enforcement failed - insert succeeded when it should have been blocked');
+            throw new Error('❌ Policy enforcement failed');
+        }
+        
+        console.log('✅ RLS policy correctly blocked insert with consented_to_sms: false');
+        console.log('Expected error:', error.message);
+        return true;
+    } catch (err) {
+        if (err.message === '❌ Policy enforcement failed') {
+            throw err;
+        }
+        console.log('✅ RLS policy enforcement working correctly');
+        return true;
+    }
+};
+
+console.log('🔧 Supabase test functions loaded. Available commands:');
+console.log('  testSupabase() - Run all tests');
+console.log('  testConnection() - Test connection only');
+console.log('  testInsert() - Test valid insert');
+console.log('  testRLS() - Test RLS enforcement');
 
 // Smooth scrolling and animations
 document.addEventListener('DOMContentLoaded', function() {
@@ -119,9 +207,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     }
-    
-    // Manual test trigger - can be called from browser console
-    window.testSupabase = runAllTests;
     
     // Test Supabase connection on page load
     async function testSupabaseConnection() {
